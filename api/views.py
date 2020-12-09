@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework import permissions
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Post, Comment, Group, Follow
 from .serializers import PostSerializer, CommentSerializer, GroupSerializer, FollowSerializer
@@ -44,7 +44,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = [PermissionForGroups,]
+    permission_classes = [IsAuthenticatedOrReadOnly,]
 
     def perform_create(self, serializer):
         serializer.save()
