@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_http_methods
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -9,20 +10,15 @@ from .serializers import PostSerializer, CommentSerializer, GroupSerializer, Fol
 from .permisson import IsAuthorOrReadOnly, PermissionForGroups
 
 
-
 class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthorOrReadOnly,]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ['group',]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    def get_queryset(self):
-        queryset = Post.objects.all()
-        group = self.request.query_params.get('group', None)
-        if group is not None:
-            queryset = queryset.filter(group=group)
-        return queryset 
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -44,6 +40,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+    http_method_names = ['get', 'post']
     permission_classes = [IsAuthenticatedOrReadOnly,]
 
     def perform_create(self, serializer):
@@ -53,6 +50,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 class FollowViewSet(viewsets.ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+    http_method_names = ['get', 'post']
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ('=user__username', '=following__username')
